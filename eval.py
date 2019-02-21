@@ -117,7 +117,7 @@ def eval(time='day', mode='val'):
     assert time in ['day', 'night']
     assert mode in ['val', 'test']
 
-    gt_path = './data/labels/{}/{}'.format(time, mode)
+    gt_path = './data/{}/labels/{}'.format(time, mode)
     det_path = './data/mock_detections/{}/{}'.format(time, mode)
     det_method_name = 'Faster R-CNN'
 

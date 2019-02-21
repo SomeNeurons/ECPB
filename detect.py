@@ -28,7 +28,7 @@ def run_detector_on_dataset(time='day', mode='val'):
     assert mode in ['val', 'test']
     assert time in ['day', 'night']
 
-    eval_imgs = glob.glob('./data/img/{}/{}/*/*'.format(time, mode))
+    eval_imgs = glob.glob('./data/{}/img/{}/*/*'.format(time, mode))
     destdir = './data/mock_detections/{}/{}/'.format(time, mode)
     dataconverter.create_base_dir(destdir)
 
