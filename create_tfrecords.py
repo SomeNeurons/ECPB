@@ -15,12 +15,12 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%a, %d %b %Y %H:%M:%S',
                     )
 
-tf.app.flags.DEFINE_string('out_dir', '~/data/ecp/tfrecords', 'Place to search for the created files.')
+tf.app.flags.DEFINE_string('out_dir', './data/ecp/tfrecords', 'Place to search for the created files.')
 tf.app.flags.DEFINE_string('dataset_name', 'ecp-day',
                            'Name of the dataset, used to create the tfrecord files.')
-tf.app.flags.DEFINE_string('anno_path', '~/data/labels',
+tf.app.flags.DEFINE_string('anno_path', './data/day/labels',
                            'Base directory which contains the ecp annotations.')
-tf.app.flags.DEFINE_string('img_path', '~/data/img',
+tf.app.flags.DEFINE_string('img_path', './data/day/img',
                            'Base directory which contains the ecp images.')
 
 tf.app.flags.DEFINE_integer('train_shards', 20, 'Number of training shards.')
@@ -98,7 +98,7 @@ class ExampleCreator:
         assert os.path.splitext(os.path.basename(img_path))[0] == os.path.splitext(os.path.basename(anno_path))[0]
 
         img, format = self.load_img(img_path)
-        with open(anno_path, 'rb') as f:
+        with open(anno_path, 'r') as f:
             annotations = json.load(f)
         img_height, img_width = img.shape[:2]
         assert img_height == 1024
@@ -119,11 +119,12 @@ class ExampleCreator:
             if anno['identity'] not in self.identity_to_label.keys():
                 skipped_annotations += 1
                 continue
+                # TODO add loading of ignore regions if you want to use them
             box_cnt += 1
 
             if anno['identity'] == 'rider':
                 pass
-                # TODO add bicycle?
+                # TODO consider bounding box of ridden vehicle that is stored in anno['children']
 
             cls_label = self.identity_to_label[anno['identity']]
             ymin.append(float(anno['y0']) / img_height)
