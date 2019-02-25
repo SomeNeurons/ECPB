@@ -57,12 +57,13 @@ def create_evaluator(data, difficulty, ignore_other_vru, type='pedestrian'):
 
 
 def evaluate(difficulty, ignore_other_vru, results_path, det_path, gt_path, det_method_name,
-             use_cache):
+             use_cache, eval_type='pedestrian'):
     """The actual evaluation"""
 
     # path to save pickled results
     pkl_path = os.path.join(results_path,
-                            'ignore={}_difficulty={}.pkl'.format(ignore_other_vru, difficulty))
+                            'ignore={}_difficulty={}_evaltype={}.pkl'.format(ignore_other_vru,
+                                                                             difficulty, eval_type))
 
     if os.path.exists(pkl_path) and use_cache:
         print '# # # # # # # # # # # # # # # # # # # --- NOTE --- # # # # # # # # # # # # # # #'
@@ -72,22 +73,25 @@ def evaluate(difficulty, ignore_other_vru, results_path, det_path, gt_path, det_
         result = Result.load_from_disc(pkl_path)
     else:
         data = load_data_ecp(gt_path, det_path)
-        evaluator = create_evaluator(data, difficulty, ignore_other_vru)
+        evaluator = create_evaluator(data, difficulty, ignore_other_vru, eval_type)
         result = evaluator.result
         result.save_to_disc(pkl_path)
 
     # Miss Rate vs False Positive Per Image
     mr_fppi = statistics.MrFppi(result=result)
-    title = 'difficulty={}, ignore_other_vru={}'.format(difficulty, ignore_other_vru)  # edit
-    label = 'lamr: {}'.format(mr_fppi.log_avg_mr_reference_implementation())  # edit
+    title = 'difficulty={}, ignore_other_vru={}, evaltype={}'.format(difficulty, ignore_other_vru,
+                                                                     eval_type)
+    label = 'lamr: {}'.format(mr_fppi.log_avg_mr_reference_implementation())
     fig = mr_fppi.create_plot(title, label)
-    filename = 'lamr_ignore={}_difficulty={}'.format(ignore_other_vru, difficulty)  # edit
+    filename = 'lamr_ignore={}_difficulty={}_evaltype={}'.format(ignore_other_vru, difficulty,
+                                                                 eval_type)
     fig.savefig(os.path.join(results_path, '{}.pdf'.format(filename)))  # vector graphic
     fig.savefig(os.path.join(results_path, '{}.png'.format(filename)))  # png
 
     print '# ----------------------------------------------------------------- #'
     print 'Finished evaluation of ' + det_method_name
-    print 'difficulty={}, ignore_other_vru={}'.format(difficulty, ignore_other_vru)
+    print 'difficulty={}, ignore_other_vru={}, evaltype={}'.format(difficulty, ignore_other_vru,
+                                                                   eval_type)
     print '---'
     print 'Log-Avg Miss Rate (caltech reference implementation): ', \
         mr_fppi.log_avg_mr_reference_implementation()
@@ -103,17 +107,17 @@ def evaluate(difficulty, ignore_other_vru, results_path, det_path, gt_path, det_
     print ''
 
 
-def evaluate_detection(results_path, det_path, gt_path, det_method_name):
+def evaluate_detection(results_path, det_path, gt_path, det_method_name, eval_type='pedestrian'):
     print 'Start evaluation for {}'.format(det_method_name)
     for difficulty in ['reasonable', 'small', 'occluded', 'all']:
         # False is the default case used by the benchmark server,
         # use [True, False] if you want to compare the enforce with the ignore setting
         for ignore_other_vru in [True, False]:
             evaluate(difficulty, ignore_other_vru, results_path, det_path, gt_path, det_method_name,
-                     use_cache=False)
+                     use_cache=False, eval_type=eval_type)
 
 
-def eval(time='day', mode='val'):
+def eval(time='day', mode='val', eval_type='pedestrian'):
     assert time in ['day', 'night']
     assert mode in ['val', 'test']
 
@@ -126,7 +130,7 @@ def eval(time='day', mode='val'):
     if not os.path.exists(results_path):
         os.makedirs(results_path)
 
-    evaluate_detection(results_path, det_path, gt_path, det_method_name)
+    evaluate_detection(results_path, det_path, gt_path, det_method_name, eval_type)
     print ''
     print '# -----------------------------------------------------------------'
     print 'Finished evaluation, results can be found here: {}'.format(results_path)
@@ -137,4 +141,4 @@ def eval(time='day', mode='val'):
     plt.show()  # comment this if you don't want plots to pop up
 
 if __name__ == "__main__":
-    eval(time='day', mode='val')
+    eval(time='day', mode='val', eval_type='pedestrian')
