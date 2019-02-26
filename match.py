@@ -2,7 +2,10 @@
 The heart of the evaluation toolchain.
 """
 
-import cPickle as pkl
+try:
+    import cPickle as pkl
+except ImportError:
+    import pickle as pkl
 
 import numpy as np
 
